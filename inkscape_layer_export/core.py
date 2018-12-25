@@ -6,16 +6,13 @@ https://graphicdesign.stackexchange.com/questions/5880/how-can-you-export-an-ink
 
 inkscape --file=mySVGinputFile.svg --export-area-drawing --without-gui --export-pdf=output.pdf
 
-
-
-
-
 """
 
 from lxml import etree
 import os
 import sys
 import re
+# from ipydex import IPS
 
 # TODO: implement node_name self
 from svglib.svglib import node_name
@@ -128,11 +125,17 @@ class Layer(object):
 
         # TODO: catch errors and produce meaningful message
         print(frame_str_list)
-        if not frame_str_list == ['']:
-            frame_list = list(map(int, frame_str_list))
-            frame_list.sort()
+        for frame_str in frame_str_list:
+            if frame_str == "":
+                continue
+            try:
+                self.frames.append(int(frame_str))
+            except ValueError as err:
+                # IPS()
+                print("int-conversion-error for layer:`{}`".format(self.label))
+                raise err
 
-            self.frames.extend(frame_list)
+        self.frames.sort()
 
     def set_visibility(self, visibility_flag):
         """
@@ -222,7 +225,7 @@ def layer_list(svg):
     return layers
 
 
-def render_layer_selections(layer_list, **kwargs):
+def render_layer_selections(layer_list, svg_obj, **kwargs):
     """
     For each frame interate through layer_list,
     and set the visibility accordingly
@@ -230,7 +233,7 @@ def render_layer_selections(layer_list, **kwargs):
 
     # the path is needed by the used library to determine the directory
     # this might be the place to inject a specific outdir
-    svgpath = svg.base
+    svgpath = svg_obj.base
 
     # TODO: maybe support other endings.. (e.g. "svg")
     assert svgpath.endswith(".svg")
@@ -256,7 +259,7 @@ def render_layer_selections(layer_list, **kwargs):
 
         tmpsvgpath = "__tmp__.svg"
         with open(tmpsvgpath, "w") as svgfile:
-            svgfile.write(etree.tostring(svg, encoding="utf8", pretty_print=True).decode("utf8"))
+            svgfile.write(etree.tostring(svg_obj, encoding="utf8", pretty_print=True).decode("utf8"))
 
         cmd = inkscape_cmd_template.format(tmpsvgpath, targetpath)
         run_command(cmd, msg="{} written".format(targetpath))
@@ -270,6 +273,9 @@ def render_layer_selections(layer_list, **kwargs):
     run_command(pdftkcommand, "overview generated")
 
 
-svg = read_svg(sys.argv[1])
-ll = layer_list(svg)
-render_layer_selections(ll)
+def main():
+    svg = read_svg(sys.argv[1])
+    ll = layer_list(svg)
+
+    # IPS()
+    render_layer_selections(ll, svg)

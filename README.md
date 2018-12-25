@@ -41,5 +41,5 @@ an overview-pdf, containing all frames as single pages.
 
 The current state of the script suffices to fulfill the needs of the author.
 However, it would make sense to convert the script into an inkscape plugin,
-add different output options (gif), make it more robust, etc.
+add different output options (e.g., gif), make it more robust, etc.
 Feel free to open issues and send pull requests.
