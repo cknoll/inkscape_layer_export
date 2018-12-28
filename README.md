@@ -1,3 +1,5 @@
+[![PyPI version](https://badge.fury.io/py/inkscape-layer-export.svg)](https://badge.fury.io/py/inkscape-layer-export)
+
 # inkscape_layer_export
 
 Simple script to export arbitrary combinations of layers of an inkscape document
