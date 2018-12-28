@@ -4,6 +4,8 @@ Simple script to export arbitrary combinations of layers of an inkscape document
 to separate files. This is useful to create simple animations or sets of graphics
 which share significant elements.
 
+![example animation](examples/example_animation.gif "example animation")
+
 ## Installation
 
 `pip install inkscape_layer_export`
@@ -20,9 +22,9 @@ how many frames occur and which layer should be visibile in which frames.
 Syntax: Frame specification is delimited by `__[` (start) and  `]` (end).
 Valid layer names are, e.g.:
 
-    arbitrary_layername4__[2, 4]
+    arbitrary_layername4__[2,4,5--end]
     short__[2--end]
-    another_arbitrary_layername__[1, 2, 3]
+    another_arbitrary_layername__[1,2,3]
     arbitrary_layername1__[1--end]
     layer0815
 
@@ -31,10 +33,30 @@ Valid layer names are, e.g.:
 **Frame generation**
 
 Open a terminal/konsole in the directory were your target svg-file is located
-and type `inkscape_layer export targetfile.svg`.
+and type `inkscape_layer_export targetfile.svg`.
 
 This should generate a pdf-file for each frame and (if `pdftk` is installed)
 an overview-pdf, containing all frames as single pages.
+
+**Usage of the generated frames**
+
+* create a animated gif linke in `examples/convert.sh`
+* use with LaTeX-Beamer:
+
+->
+
+    \begin{textblock*}{\textwidth}[0.,0.](10mm,20mm)
+        \setlength{\mywidth}{0.9\textwidth}
+        \only<+>{\includegraphics[width=\mywidth]{img-src/example-01}}
+        \only<+>{\includegraphics[width=\mywidth]{img-src/example-02}}
+        \only<+>{\includegraphics[width=\mywidth]{img-src/example-03}}
+        \only<+>{\includegraphics[width=\mywidth]{img-src/example-04}}
+        \only<+>{\includegraphics[width=\mywidth]{img-src/example-05}}
+        \only<+>{\includegraphics[width=\mywidth]{img-src/example-06}}
+        \only<+>{\includegraphics[width=\mywidth]{img-src/example-07}}
+        \only<+>{\includegraphics[width=\mywidth]{img-src/example-08}}
+        \only<+>{\includegraphics[width=\mywidth]{img-src/example-09}}
+    \end{textblock*}
 
 
 ## Furhter plans
