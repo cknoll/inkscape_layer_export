@@ -12,7 +12,9 @@ from lxml import etree
 import os
 import sys
 import re
-# from ipydex import IPS
+# from ipydex import IPS, activate_ips_on_exception
+# activate_ips_on_exception()
+
 
 # TODO: implement node_name self
 from svglib.svglib import node_name
@@ -23,8 +25,36 @@ from svglib.svglib import node_name
 IS_PREFIX = "{http://www.inkscape.org/namespaces/inkscape}"
 
 
-inkscape_cmd_template = "inkscape --file={} --export-area-page " \
-                        "--without-gui --export-ignore-filters --export-pdf={}"
+class Container(object):
+    pass
+
+
+class Lazymap(object):
+    """
+    s = '{foo} {bar}'
+
+    s.format_map(Lazymap(bar="FOO"))
+    >>> '{foo} FOO'
+
+    s.format_map(Lazymap(bar="BAR"))
+    >>> '{foo} BAR'
+
+    s.format_map(Lazymap(bar="BAR", foo="FOO", baz="BAZ"))
+    >>> 'FOO BAR'
+    """
+    def __init__(self, **kwargs):
+        self.dict = kwargs
+
+    def __getitem__(self, key):
+        return self.dict.get(key, "".join(["{", key, "}"]))
+
+
+# global Data Container
+C = Container()
+
+
+C.inkscape_cmd_template = "inkscape --file={in_file} --export-area-page " \
+                          "--without-gui --export-ignore-filters {export_format}={out_file} {res_string}"
 
 
 def run_command(cmd, msg):
@@ -235,6 +265,8 @@ def render_layer_selections(layer_list, svg_obj, **kwargs):
     # this might be the place to inject a specific outdir
     svgpath = svg_obj.base
 
+    filetype = kwargs.get("filetype")
+
     # TODO: maybe support other endings.. (e.g. "svg")
     assert svgpath.endswith(".svg")
     svgbasename = os.path.basename(svgpath)
@@ -246,9 +278,9 @@ def render_layer_selections(layer_list, svg_obj, **kwargs):
         # visible_layers = []
         # invisible_layers = []
 
-        pdfbasename = svgbasename.replace(".svg", "-{:02d}.pdf".format(framenbr))
+        outf_basename = svgbasename.replace(".svg", "-{:02d}.{}".format(framenbr, filetype))
 
-        targetpath = os.path.join(svgdir, pdfbasename)
+        targetpath = os.path.join(svgdir, outf_basename)
 
         for layer in layer_list:
             # check if current framenbr is desired for this layer
@@ -261,21 +293,50 @@ def render_layer_selections(layer_list, svg_obj, **kwargs):
         with open(tmpsvgpath, "w") as svgfile:
             svgfile.write(etree.tostring(svg_obj, encoding="utf8", pretty_print=True).decode("utf8"))
 
-        cmd = inkscape_cmd_template.format(tmpsvgpath, targetpath)
+        cmd = C.inkscape_cmd_template.format(in_file=tmpsvgpath, out_file=targetpath)
         run_command(cmd, msg="{} written".format(targetpath))
 
         # TODO: delete tmpsvgpath
 
-    pdfwildcardpath = svgbasename.replace(".svg", "-*.pdf")
-    pdfallpath = svgbasename.replace(".svg", "_all.pdf")
-    pdftkcommand = "pdftk {} cat output {}".format(pdfwildcardpath, pdfallpath)
+    os.remove(tmpsvgpath)
 
-    run_command(pdftkcommand, "overview generated")
+    if filetype == "pdf":
+        pdfwildcardpath = svgbasename.replace(".svg", "-*.pdf")
+        pdfallpath = svgbasename.replace(".svg", "_all.pdf")
+        pdftkcommand = "pdftk {} cat output {}".format(pdfwildcardpath, pdfallpath)
+
+        run_command(pdftkcommand, "overview generated")
 
 
 def main():
     svg = read_svg(sys.argv[1])
     ll = layer_list(svg)
 
+    if len(sys.argv) > 2:
+        filetype = sys.argv[2].lower()
+    else:
+        filetype = "pdf"
+
+    if len(sys.argv) > 3:
+        resolution = int(sys.argv[3].lower())
+        res_string = "--export-dpi={}".format(resolution)
+
+    else:
+        res_string = ""
+
+    export_formats = dict(pdf="--export-pdf", svg="--export-plain-svg", png="--export-png")
+
+    # noinspection PyTypeChecker
+    C.inkscape_cmd_template = \
+        C.inkscape_cmd_template.format_map(Lazymap(export_format=export_formats[filetype], res_string=res_string))
+
+    valid_file_types = list(export_formats.keys())
+    if filetype not in valid_file_types:
+        msg = "invalid filetype (must be one of {})".format(valid_file_types)
+        raise ValueError(msg)
+
     # IPS()
-    render_layer_selections(ll, svg)
+    render_layer_selections(ll, svg, filetype=filetype)
+
+
+
