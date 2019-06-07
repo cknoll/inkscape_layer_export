@@ -204,6 +204,7 @@ class Layer(object):
         self.svg_node.attrib["style"] = new_style_str
 
 
+# noinspection PyUnusedLocal
 def read_svg(path, **kwargs):
     """
     Parse svg-Document
@@ -215,6 +216,7 @@ def read_svg(path, **kwargs):
         doc = etree.parse(path, parser=parser)
         svg_object = doc.getroot()
     except Exception as exc:
+        svg_object = None
         print("Failed to load input file! (%s)" % exc)
         exit()
 
@@ -237,7 +239,7 @@ def determine_max_frame(layers):
     return int(all_numbers[-1])
 
 
-def layer_list(svg):
+def get_layer_list(svg):
     all_elements_it = svg.getiterator()
     layers = []
 
@@ -272,6 +274,8 @@ def render_layer_selections(layer_list, svg_obj, **kwargs):
     svgbasename = os.path.basename(svgpath)
     svgdir = os.path.dirname(svgpath)
 
+    tmpsvgpath = None
+
     # iterate over frames (starting with 1, including maxframe)
     for framenbr in range(1, Layer.maxframe + 1):
         print("\n\n-- Frame: {}\n".format(framenbr))
@@ -298,7 +302,8 @@ def render_layer_selections(layer_list, svg_obj, **kwargs):
 
         # TODO: delete tmpsvgpath
 
-    os.remove(tmpsvgpath)
+    if tmpsvgpath:
+        os.remove(tmpsvgpath)
 
     if filetype == "pdf":
         pdfwildcardpath = svgbasename.replace(".svg", "-*.pdf")
@@ -310,7 +315,7 @@ def render_layer_selections(layer_list, svg_obj, **kwargs):
 
 def main():
     svg = read_svg(sys.argv[1])
-    ll = layer_list(svg)
+    ll = get_layer_list(svg)
 
     if len(sys.argv) > 2:
         filetype = sys.argv[2].lower()
