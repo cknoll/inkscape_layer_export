@@ -37,15 +37,24 @@ Valid layer names are, e.g.:
 Open a terminal/konsole in the directory were your target svg-file is located
 and type `inkscape_layer_export targetfile.svg`.
 
-This should generate a pdf-file for each frame and (if `pdftk` is installed)
+
+This will generate a pdf-file for each frame and (if `pdftk` is installed)
 an overview-pdf, containing all frames as single pages.
+
+Other possible invocations:
+
+    # png
+    inkscape_layer_export myfile.svg png
+
+    # png with dpi specification
+    inkscape_layer_export myfile.svg png 300
 
 **Usage of the generated frames**
 
 * create a animated gif linke in `examples/convert.sh`
 * use with LaTeX-Beamer:
 
-->
+→
 
     \begin{textblock*}{\textwidth}[0.,0.](10mm,20mm)
         \setlength{\mywidth}{0.9\textwidth}
