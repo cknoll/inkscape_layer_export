@@ -70,7 +70,7 @@ Other possible invocations:
     \end{textblock*}
 
 
-## Furhter plans
+## Further plans
 
 The current state of the script suffices to fulfill the needs of the author.
 However, it would make sense to convert the script into an inkscape plugin,
