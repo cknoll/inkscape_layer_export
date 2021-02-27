@@ -1,16 +1,28 @@
 # -*- coding: utf-8 -*-
 
+import os
 from setuptools import setup
-from inkscape_layer_export.release import __version__
+
+
+packagename = "inkscape_layer_export"
+
+# consider the path of `setup.py` as root directory:
+PROJECTROOT = os.path.dirname(sys.argv[0]) or "."
+__version__ = (
+    open(os.path.join(PROJECTROOT, packagename, "release.py"), encoding="utf8")
+    .read()
+    .split('__version__ = "', 1)[1]
+    .split('"', 1)[0]
+)
 
 with open("requirements.txt") as requirements_file:
     requirements = requirements_file.read()
 
 setup(
-    name='inkscape_layer_export',
+    name=packagename,
     version=__version__,
     author='Carsten Knoll',
-    packages=['inkscape_layer_export'],
+    packages=[packagename],
     package_data={'imagedirpreview': ['templates/*']},
     url='https://github.com/cknoll/imagedirpreview',
     license='GPLv3',
@@ -20,5 +32,5 @@ setup(
     """,
     keywords='svg, pdf, animation, helper script',
     install_requires=requirements,
-    entry_points={'console_scripts': ['inkscape_layer_export=inkscape_layer_export:main']}
+    entry_points={'console_scripts': ['{0}={0}:main'.format(packagename)]}
 )
