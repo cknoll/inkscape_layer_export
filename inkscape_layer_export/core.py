@@ -12,7 +12,8 @@ from lxml import etree
 import os
 import sys
 import re
-# from ipydex import IPS, activate_ips_on_exception
+import argparse
+from ipydex import IPS, activate_ips_on_exception
 # activate_ips_on_exception()
 
 
@@ -282,7 +283,9 @@ def render_layer_selections(layer_list, svg_obj, **kwargs):
         # visible_layers = []
         # invisible_layers = []
 
-        outf_basename = svgbasename.replace(".svg", "-{:02d}.{}".format(framenbr, filetype))
+        outf_basename = kwargs.get("outputbasename")
+        if not outf_basename:
+            outf_basename = svgbasename.replace(".svg", "-{:02d}.{}".format(framenbr, filetype))
 
         targetpath = os.path.join(svgdir, outf_basename)
 
@@ -314,34 +317,37 @@ def render_layer_selections(layer_list, svg_obj, **kwargs):
 
 
 def main():
-    svg = read_svg(sys.argv[1])
-    ll = get_layer_list(svg)
 
-    if len(sys.argv) > 2:
-        filetype = sys.argv[2].lower()
-    else:
-        filetype = "pdf"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("inputfile", help="the svg file which should be processed")
+    parser.add_argument("-f", "--filetype", help="choose between pdf (default) and png", choices=["pdf", "png"], default="pdf")
+    parser.add_argument("-o", "--outputbasename", help="first part of name of output file", default=None)
+    parser.add_argument("-r", "--resolution", help="resolution (dpi) for png output", default=100)
 
-    if len(sys.argv) > 3:
-        resolution = int(sys.argv[3].lower())
-        res_string = "--export-dpi={}".format(resolution)
+    args = parser.parse_args()
 
+    if args.filetype == "png":
+        res_string = "--export-dpi={}".format(args.resolution)
     else:
         res_string = ""
 
     export_formats = dict(pdf="--export-pdf", svg="--export-plain-svg", png="--export-png")
 
-    # noinspection PyTypeChecker
-    C.inkscape_cmd_template = \
-        C.inkscape_cmd_template.format_map(Lazymap(export_format=export_formats[filetype], res_string=res_string))
-
     valid_file_types = list(export_formats.keys())
-    if filetype not in valid_file_types:
+    if args.filetype not in valid_file_types:
         msg = "invalid filetype (must be one of {})".format(valid_file_types)
         raise ValueError(msg)
 
+
+    svg = read_svg(args.inputfile)
+    ll = get_layer_list(svg)
+
+    # noinspection PyTypeChecker
+    C.inkscape_cmd_template = \
+        C.inkscape_cmd_template.format_map(Lazymap(export_format=export_formats[args.filetype], res_string=res_string))
+
     # IPS()
-    render_layer_selections(ll, svg, filetype=filetype)
+    render_layer_selections(ll, svg, filetype=args.filetype, outputbasename=args.outputbasename)
 
 
 

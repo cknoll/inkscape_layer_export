@@ -43,11 +43,17 @@ an overview-pdf, containing all frames as single pages.
 
 Other possible invocations:
 
+    # general help:
+    inkscape_layer_export --help
+
     # png
-    inkscape_layer_export myfile.svg png
+    inkscape_layer_export myfile.svg -f png
 
     # png with dpi specification
-    inkscape_layer_export myfile.svg png 300
+    inkscape_layer_export myfile.svg -f png -r 300
+
+    # specify name of outputfile
+    inkscape_layer_export myfile.svg -o newbasename
 
 **Usage of the generated frames**
 
